@@ -3,7 +3,7 @@
 ## Constructors
 
     NewLogger(reflect.Type, debug io.Writer, info io.Writer, warn io.Writer, err io.Writer) *Logger
-    NewConsoleLogger(reflect.Type)
+    NewConsoleLogger(reflect.Type) *Logger
 
 
 ## Method signatures
