@@ -7,13 +7,14 @@ import (
 	"time"
 	"runtime"
 	"fmt"
+	"path"
 )
 
 const (
-	ERROR = iota
-	WARN
-	INFO
-	DEBUG
+	LEVEL_ERROR = iota
+	LEVEL_WARN
+	LEVEL_INFO
+	LEVEL_DEBUG
 )
 
 var stringLevels []string = []string{"ERROR", "WARN", "INFO", "DEBUG"}
@@ -24,33 +25,36 @@ type Logger struct {
 	level int
 }
 
-func (logger *Logger) log(file string, line int, level int, messageFormat string, v ...interface{}) {
-	if !(logger.level <= level) {
+func (logger *Logger) log(level int, messageFormat string, v ...interface{}) {
+	if logger.level < level {
 		return
 	}
 
+	_, filePath, lineNumber, _ := runtime.Caller(2)
 	formattedMessage := fmt.Sprintf(messageFormat, v...)
-	fmt.Fprintf(logger.writer, "[%s][%s][" + logger.yourType.Name() + "][%s:%d] : %s\n", time.Now().Format(time.RFC3339), stringLevels[logger.level], file, line, formattedMessage)
+	fmt.Fprintf(logger.writer,
+		"[%s][%s][" + logger.yourType.Name() + "][%s:%d] : %s\n",
+		time.Now().Format(time.RFC3339),
+		stringLevels[level],
+		path.Base(filePath),
+		lineNumber,
+		formattedMessage)
 }
 
 func (logger *Logger) Debug(messageFormat string, v ...interface{}) {
-	_, file, line, _ := runtime.Caller(1)
-	logger.log(file, line, DEBUG, messageFormat, v...)
+	logger.log(LEVEL_DEBUG, messageFormat, v...)
 }
 
 func (logger *Logger) Info(messageFormat string, v ...interface{}) {
-	_, file, line, _ := runtime.Caller(1)
-	logger.log(file, line, INFO, messageFormat, v...)
+	logger.log(LEVEL_INFO, messageFormat, v...)
 }
 
 func (logger *Logger) Warn(messageFormat string, v ...interface{}) {
-	_, file, line, _ := runtime.Caller(1)
-	logger.log(file, line, WARN, messageFormat, v...)
+	logger.log(LEVEL_WARN, messageFormat, v...)
 }
 
 func (logger *Logger) Error(messageFormat string, v ...interface{}) {
-	_, file, line, _ := runtime.Caller(1)
-	logger.log(file, line, ERROR, messageFormat, v...)
+	logger.log(LEVEL_ERROR, messageFormat, v...)
 }
 
 func NewLogger(yourType reflect.Type, writer io.Writer, level int) (*Logger) {
@@ -62,8 +66,8 @@ func NewLogger(yourType reflect.Type, writer io.Writer, level int) (*Logger) {
 		panic("[NewLogger] Parameter `writer` must not be nil")
 	}
 
-	if !(level >= ERROR && level <= DEBUG) {
-		panic("[NewLogger] Parameter `level` must be ERROR, WARN, INFO, or DEBUG")
+	if !(level >= LEVEL_ERROR && level <= LEVEL_DEBUG) {
+		panic("[NewLogger] Parameter `level` must be LEVEL_ERROR, LEVEL_WARN, LEVEL_INFO, or LEVEL_DEBUG")
 	}
 
 	var logger *Logger = new(Logger)
