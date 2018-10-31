@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"reflect"
 	"io"
 	"os"
 	"time"
@@ -20,7 +19,6 @@ const (
 var stringLevels []string = []string{"ERROR", "WARN", "INFO", "DEBUG"}
 
 type Logger struct {
-	yourType reflect.Type
 	writer io.Writer
 	level int
 }
@@ -33,7 +31,7 @@ func (logger *Logger) log(level int, messageFormat string, v ...interface{}) {
 	_, filePath, lineNumber, _ := runtime.Caller(2)
 	formattedMessage := fmt.Sprintf(messageFormat, v...)
 	fmt.Fprintf(logger.writer,
-		"[%s][%s][" + logger.yourType.Name() + "][%s:%d] : %s\n",
+		"[%s][%s][%s:%d] : %s\n",
 		time.Now().Format(time.RFC3339),
 		stringLevels[level],
 		path.Base(filePath),
@@ -57,11 +55,7 @@ func (logger *Logger) Error(messageFormat string, v ...interface{}) {
 	logger.log(LEVEL_ERROR, messageFormat, v...)
 }
 
-func NewLogger(yourType reflect.Type, writer io.Writer, level int) (*Logger) {
-	if yourType == nil {
-		panic("[NewLogger] Parameter `yourType` must not be nil")
-	}
-
+func NewLogger(writer io.Writer, level int) (*Logger) {
 	if writer == nil {
 		panic("[NewLogger] Parameter `writer` must not be nil")
 	}
@@ -71,12 +65,11 @@ func NewLogger(yourType reflect.Type, writer io.Writer, level int) (*Logger) {
 	}
 
 	var logger *Logger = new(Logger)
-	logger.yourType = yourType
 	logger.writer = writer
 	logger.level = level
 	return logger
 }
 
-func NewConsoleLogger(yourType reflect.Type, level int) (*Logger) {
-	return NewLogger(yourType, os.Stdout, level)
+func NewConsoleLogger(level int) (*Logger) {
+	return NewLogger(os.Stdout, level)
 }
