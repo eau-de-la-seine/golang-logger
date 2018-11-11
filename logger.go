@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"fmt"
 	"path"
+	"sync"
 )
 
 const (
@@ -21,6 +22,7 @@ var stringLevels []string = []string{"ERROR", "WARN", "INFO", "DEBUG"}
 type Logger struct {
 	writer io.Writer
 	level int
+	mutex sync.Mutex
 }
 
 func (logger *Logger) log(level int, messageFormat string, v ...interface{}) {
@@ -29,14 +31,20 @@ func (logger *Logger) log(level int, messageFormat string, v ...interface{}) {
 	}
 
 	_, filePath, lineNumber, _ := runtime.Caller(2)
-	formattedMessage := fmt.Sprintf(messageFormat, v...)
-	fmt.Fprintf(logger.writer,
-		"[%s][%s][%s:%d] : %s\n",
+
+	formattedLogMessage := fmt.Sprintf("[%s][%s][%s:%d] : %s\n",
 		time.Now().Format(time.RFC3339),
 		stringLevels[level],
+		// Only show the file name from given path
 		path.Base(filePath),
 		lineNumber,
-		formattedMessage)
+		// Formatted user message
+		fmt.Sprintf(messageFormat, v...))
+
+	messageToLog := []byte(formattedLogMessage)
+	logger.mutex.Lock()
+	defer logger.mutex.Unlock()
+	logger.writer.Write(messageToLog)
 }
 
 func (logger *Logger) Debug(messageFormat string, v ...interface{}) {
