@@ -6,7 +6,16 @@
     NewConsoleLogger(reflect.Type, level int) *Logger
 
 
-## Method signatures
+## Logger Levels
+
+	LEVEL_ERROR
+	LEVEL_WARN
+	LEVEL_INFO
+	LEVEL_DEBUG
+	LEVEL_OFF
+
+
+## Logger's method signatures
 
     Debug(messageFormat string, v ...interface{})
     Info(messageFormat string, v ...interface{})

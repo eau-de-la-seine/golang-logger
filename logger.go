@@ -10,11 +10,12 @@ import (
 	"sync"
 )
 
-const (
+const ( 
 	LEVEL_ERROR = iota
 	LEVEL_WARN
 	LEVEL_INFO
 	LEVEL_DEBUG
+	LEVEL_OFF
 )
 
 var stringLevels []string = []string{"ERROR", "WARN", "INFO", "DEBUG"}
@@ -26,7 +27,7 @@ type Logger struct {
 }
 
 func (logger *Logger) log(level int, messageFormat string, v ...interface{}) {
-	if logger.level < level {
+	if logger.level == LEVEL_OFF || logger.level < level {
 		return
 	}
 
@@ -68,8 +69,8 @@ func NewLogger(writer io.Writer, level int) (*Logger) {
 		panic("[NewLogger] Parameter `writer` must not be nil")
 	}
 
-	if !(level >= LEVEL_ERROR && level <= LEVEL_DEBUG) {
-		panic("[NewLogger] Parameter `level` must be LEVEL_ERROR, LEVEL_WARN, LEVEL_INFO, or LEVEL_DEBUG")
+	if !(level >= LEVEL_ERROR && level <= LEVEL_OFF) {
+		panic("[NewLogger] Parameter `level` must be LEVEL_ERROR, LEVEL_WARN, LEVEL_INFO, LEVEL_DEBUG, or LEVEL_OFF")
 	}
 
 	var logger *Logger = new(Logger)
