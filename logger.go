@@ -82,3 +82,22 @@ func NewLogger(writer io.Writer, level int) (*Logger) {
 func NewConsoleLogger(level int) (*Logger) {
 	return NewLogger(os.Stdout, level)
 }
+
+// Logger factory (experimental)
+type LoggerOptions struct {
+	LoggerLevel int
+}
+
+var globalLoggerOptions LoggerOptions = LoggerOptions{
+	LoggerLevel: LEVEL_OFF}
+
+func SetLoggerFactoryOptions(loggerOptions LoggerOptions) {
+	globalLoggerOptions = loggerOptions
+}
+
+var loggerMap sync.Map
+
+func LoggerFactory(name string, writer io.Writer) (*Logger) {
+	actualLogger, _ := loggerMap.LoadOrStore(name, NewLogger(writer, globalLoggerOptions.LoggerLevel))
+	return actualLogger.(*Logger)
+}
